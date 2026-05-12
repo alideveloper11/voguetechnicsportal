@@ -1,0 +1,214 @@
+.quote-listing-table {
+    border-collapse: separate;
+    border-spacing: 0 14px;
+}
+
+.quote-listing-table tbody tr,
+.quote-listing-table tbody td {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+
+.quote-listing-table > :not(caption) > * > * {
+    padding: 0;
+    background: transparent;
+}
+.sorting_1 {
+    padding: 0 !important;
+}
+.quote-card {
+    border: 1px solid #d8dee8;
+    border-radius: 14px;
+    /* background: linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%); */
+    box-shadow: 0 8px 24px rgba(31, 45, 61, 0.06);
+    padding: 14px 16px;
+}
+
+.quote-meta-badge {
+    background: #1f5ea8;
+    color: #fff;
+    font-weight: 700;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 12px;
+    line-height: 1;
+    letter-spacing: 0.02em;
+}
+
+.quote-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 8px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.quote-chip-vrm {
+    padding: 0;
+    background: transparent;
+    color: inherit;
+}
+
+.uk-number-plate {
+    display: inline-flex;
+    align-items: stretch;
+    border: 2px solid #141414;
+    border-radius: 8px;
+    overflow: hidden;
+    background: linear-gradient(180deg, #ffd84f 0%, #f7c935 100%);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.55),
+        0 3px 8px rgba(17, 24, 39, 0.14);
+}
+
+.uk-number-plate-country {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 1px;
+    width: 22px;
+    background: linear-gradient(180deg, #0a4eb3 0%, #003b91 100%);
+    color: #fff;
+    padding: 2px 0;
+}
+
+.uk-number-plate-country img {
+    width: 9px;
+    height: 7px;
+    object-fit: cover;
+    border-radius: 1px;
+}
+
+.uk-number-plate-country span {
+    font-size: 7px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    line-height: 1;
+}
+
+.uk-number-plate-value {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 12px;
+    min-height: 34px;
+    color: #111111;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    line-height: 1;
+    font-family: "Arial Black", "Segoe UI", sans-serif;
+    text-transform: uppercase;
+}
+
+.quote-chip-engine {
+    background: #d8f6ef;
+    color: #0b6b57;
+}
+
+.quote-chip-vin {
+    background: #eef2f7;
+    color: #49566b;
+}
+
+.quote-chip-color {
+    background: #f6f2d8;
+    color: #7c6500;
+}
+
+.quote-city-color {
+    background: #f6f2d8;
+    color: #088d50;
+    cursor: pointer;
+}
+
+.quote-city-color:hover {
+    background: #e7f5ea;
+    color: #066b40;
+}
+
+.distance-stat {
+    border: 1px solid #d8dee8;
+    border-radius: 12px;
+    background: #f8fafc;
+    padding: 14px;
+}
+
+.distance-stat-label {
+    color: #7d8aa2;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.distance-stat-value {
+    color: #23314d;
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1.1;
+}
+
+.distance-map {
+    width: 100%;
+    height: 280px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #d8dee8;
+}
+
+.distance-map-marker {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.28);
+}
+
+.distance-map-marker-london {
+    background: #1f5ea8;
+}
+
+.distance-map-marker-customer {
+    background: #16a34a;
+}
+
+.quote-card-title {
+    font-size: 16px;
+    font-weight: 700;
+    /* color: #26334d; */
+    letter-spacing: 0.01em;
+}
+
+.quote-card-subtitle {
+    color: #7d8aa2;
+    font-size: 13px;
+}
+
+.quote-table-shell .dt-layout-table {
+    border-top: 0 !important;
+}
+
+.quote-table-shell .dt-search input {
+    min-width: 300px;
+}
+
+@media (max-width: 767.98px) {
+    .quote-card {
+        padding: 14px;
+    }
+
+    .quote-card-title {
+        font-size: 14px;
+    }
+
+    .quote-table-shell .dt-search input {
+        min-width: 100%;
+    }
+}

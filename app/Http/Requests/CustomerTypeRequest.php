@@ -1,0 +1,37 @@
+<?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Foundation\Http\FormRequest;
+
+class CustomerTypeRequest extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        $rules = [
+            'name' => 'required|string|max:255|unique:customer_types,name',
+            'is_active' => 'nullable|boolean',
+        ];
+
+        if (in_array($this->method(), ['PUT', 'PATCH'])) {
+            $customerType = $this->route('customer_type');
+            $rules['name'] = 'required|string|max:255|unique:customer_types,name,' . $customerType->id;
+        }
+
+        return $rules;
+    }
+}
