@@ -2,7 +2,7 @@
     $vehicle = $quote->vehicle;
     $customer = $quote->customer;
     $titleParts = array_filter([
-        $vehicle?->make,
+        // $vehicle?->make,
         $vehicle?->model,
         $vehicle?->year,
         $vehicle?->fuel_type,
@@ -28,7 +28,7 @@
 
 <div class="quote-card my-2">
     <div class="d-flex flex-column flex-xl-row align-items-xl-center justify-content-between gap-3">
-        <div class="d-flex align-items-start gap-3 flex-grow-1">
+        <div class="d-flex align-items-start justify-content-between gap-3 flex-grow-1">
             <div class="d-flex flex-column flex-sm-row align-items-sm-center gap-2 gap-sm-3">
                 <div class="d-flex flex-column">
                     <small class="text-muted fw-semibold">Reference No</small>
@@ -45,7 +45,7 @@
                 <div class="d-flex flex-column">
                     <small class="fw-bold">{{ $listingType === 'accepted-quotes' ? 'Accepted at' : 'Updated at' }}</small>
                     <span class="quote-card-subtitle mt-6">
-                        {{ $listingType === 'accepted-quotes' ? date('d-M-Y H:i', strtotime($quote->accepted_at)) : $quote->updated_at->format('d-M-Y H:i') }}
+                        {{ $listingType === 'accepted-quotes' ? date('d-M-Y H:i', strtotime($quote->accepted_at)) : date('d-M-Y H:i', strtotime($quote->updated_at)) }}
                     </span>
                 </div>
             </div>
@@ -88,37 +88,79 @@
                     <span class="text-body-secondary small">
                         <i class="icon-base ti tabler-user me-1"></i>{{ $listingType === 'accepted-quotes' ? $quote->acceptedByUser?->name : $quote->updatedByUser?->name }}
                     </span>
+                    @if ($quote->no_answer === 1)
+                        <span class="badge rounded-pill bg-label-danger text-body-danger"> <i class="icon-base ti tabler-alert-triangle me-1"></i> No Answer</span>
+                    @endif
                 </div>
             </div>
-            <div class="d-flex align-items-center gap-2">
-                <div class="btn-group position-static mt-6 ms-6">
-                    <button class="btn btn-success dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        Actions
-                    </button>
-                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                        <li>
-                            <a class="dropdown-item" href="#">
-                                <i class="icon-base ti tabler-file me-2"></i>Proceed to Accept Quote
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item archiveQuote" href="javascript:void(0)" data-url="{{ url('quotes/quote/' . $quote->id . '/archive') }}" data-table="quoteListingTable">
-                                <i class="icon-base ti tabler-archive me-2"></i>Proceed to Archive Quote
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="{{ route('quotes.quote.edit', $quote) }}">
-                                <i class="icon-base ti tabler-edit me-2"></i>Edit Quote
-                            </a>
-                        </li>
-                        <li>
-                            <a href="javascript:void(0)" class="dropdown-item deleteRow" data-url="{{ route('quotes.quote.destroy', $quote) }}" data-table="quoteListingTable">
-                                <i class="icon-base ti tabler-trash me-2"></i>Delete Quote
-                            </a>
-                        </li>
-                    </ul>
+            @if ($listingType !== 'archived-quotes')
+                <div class="d-flex align-items-center gap-2">
+                    <div class="btn-group position-static mt-6 ms-6">
+                        <button class="btn btn-success dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Actions
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+
+                            @if ($listingType === 'updated-quotes')
+
+                                @can('proceed-to-accepted-quote')
+                                    <li>
+                                        <a class="dropdown-item js-accept-quote" href="javascript:void(0)"
+                                            data-url="{{ route('quotes.quote.accept', $quote) }}"
+                                            data-quote-number="{{ $quote->quote_number }}"
+                                            data-booking-date="{{ optional($quote->booking_date)->format('Y-m-d') }}"
+                                            data-table="quoteListingTable">
+                                            <i class="icon-base ti tabler-file me-2"></i>Proceed to Accept Quote
+                                        </a>
+                                    </li>
+                                @endcan
+
+                                @can('edit-quotes')
+                                    <li>
+                                        <a class="dropdown-item" href="{{ route('quotes.quote.edit', ['quote' => $quote, 'mode' => 'edit']) }}">
+                                            <i class="icon-base ti tabler-edit me-2"></i>Edit Quote
+                                        </a>
+                                    </li>
+                                @endcan
+
+                                @can('proceed-to-archived-quote')
+                                    <li>
+                                        <a class="dropdown-item archiveQuote" href="javascript:void(0)" data-url="{{ url('quotes/quote/' . $quote->id . '/archive') }}" data-table="quoteListingTable">
+                                            <i class="icon-base ti tabler-archive me-2"></i>Proceed to Archive Quote
+                                        </a>
+                                    </li>
+                                @endcan
+
+                            @elseif ($listingType === 'accepted-quotes')
+
+                                @can('proceed-to-reserve-parking')
+                                    <li>
+                                        <a class="dropdown-item proceedToReserveParking" href="#">
+                                            <i class="icon-base ti tabler-parking-circle me-2"></i>Proceed to Reserve Parking
+                                        </a>
+                                    </li>
+                                @endcan
+                                @can('proceed-to-job-card')
+                                    <li>
+                                        <a class="dropdown-item proceedToJobCard" href="#">
+                                            <i class="icon-base ti tabler-file me-2"></i>Proceed to Job Card
+                                        </a>
+                                    </li>
+                                @endcan
+
+                            @endif
+                            
+                            @if (auth()->user()->hasRole('Admin'))
+                                <li>
+                                    <a href="javascript:void(0)" class="dropdown-item deleteRow" data-url="{{ route('quotes.quote.destroy', $quote) }}" data-table="quoteListingTable">
+                                        <i class="icon-base ti tabler-trash me-2"></i>Delete Quote
+                                    </a>
+                                </li>
+                            @endif
+                        </ul>
+                    </div>
                 </div>
-            </div>
+            @endif
         </div>
     </div>
 </div>

@@ -32,7 +32,9 @@ class QuoteService
     {
         return DB::transaction(function () use ($data, $source) {
             $customer = $this->resolveCustomer($data);
-            $vehicle = $this->resolveVehicle($data);
+            $vehicle = $this->shouldCreateVehicleRecord($data, $source)
+                ? $this->resolveVehicle($data)
+                : null;
             $defaults = $this->resolveSourceDefaults($source);
             $normalizedVrm = $this->normalizeVrm($data['vrm'] ?? null);
 
@@ -40,7 +42,7 @@ class QuoteService
                 'quote_number' => $this->generateQuoteNumber(),
                 'vrm' => $normalizedVrm,
                 'customer_id' => $customer->id,
-                'vehicle_id' => $vehicle->id,
+                'vehicle_id' => $vehicle?->id,
                 'website_id' => $data['website_id'] ?? null,
                 'email_template_id' => $data['email_template_id'],
                 'quote_amount' => $data['quote_amount'] ?? null,
@@ -71,6 +73,20 @@ class QuoteService
             $customer = $this->resolveCustomer($data, $quote->customer);
             $vehicle = $this->resolveVehicle($data, $quote->vehicle);
             $normalizedVrm = $this->normalizeVrm($data['vrm'] ?? null);
+            $actionMode = $data['action_mode'] ?? 'edit';
+            $status = $quote->status;
+            $acceptedBy = $quote->accepted_by;
+            $acceptedAt = $quote->accepted_at;
+
+            if ($quote->status === 'web_inquiries') {
+                $status = 'update_quote';
+                $acceptedBy = null;
+                $acceptedAt = null;
+            } elseif ($quote->status === 'update_quote' && $actionMode === 'accept') {
+                $status = 'accepted';
+                $acceptedBy = auth()->id();
+                $acceptedAt = now();
+            }
 
             $quote->update([
                 'vrm' => $normalizedVrm,
@@ -83,14 +99,34 @@ class QuoteService
                 'guarantee' => $data['guarantee'] ?? null,
                 'delivery_time' => $data['delivery_time'] ?? null,
                 'offer_type' => $data['offer_type'] ?? null,
+                'status' => $status,
                 'notes' => $data['issue'],
                 'no_answer' => $data['no_answer'] ?? false,
                 'updated_by' => auth()->id(),
+                'accepted_by' => $acceptedBy,
+                'accepted_at' => $acceptedAt,
             ]);
 
             $this->syncNotes($quote, $data['notes'] ?? []);
 
             return $quote->fresh(['customer', 'vehicle', 'emailTemplate', 'quoteNotes.creator']);
+        });
+    }
+
+    public function acceptQuote(int $quoteId, string $bookingDate): Quote
+    {
+        return DB::transaction(function () use ($quoteId, $bookingDate) {
+            $quote = Quote::findOrFail($quoteId);
+
+            $quote->update([
+                'status' => 'accepted',
+                'booking_date' => $bookingDate,
+                'updated_by' => auth()->id(),
+                'accepted_by' => auth()->id(),
+                'accepted_at' => now(),
+            ]);
+
+            return $quote->fresh(['customer', 'vehicle', 'acceptedByUser', 'updatedByUser']);
         });
     }
 
@@ -183,6 +219,21 @@ class QuoteService
         }
 
         return $customer;
+    }
+
+    protected function shouldCreateVehicleRecord(array $data, string $source = 'web'): bool
+    {
+        if ($source !== 'api') {
+            return true;
+        }
+
+        return collect([
+            $data['make'] ?? null,
+            $data['model'] ?? null,
+            $data['year'] ?? null,
+            $data['engine_code'] ?? null,
+            $data['maximum_bhp'] ?? null,
+        ])->every(fn ($value) => filled($value));
     }
 
     protected function vehiclePayload(array $data): array
@@ -294,7 +345,7 @@ class QuoteService
             'vehicle_make' => $quote->vehicle?->make ?? '',
             'vehicle_model' => $quote->vehicle?->model ?? '',
             'vehicle_year' => $quote->vehicle?->year ?? '',
-            'vrm' => $quote->vehicle?->vrm ?? '',
+            'vrm' => $quote->vehicle?->vrm ?? $quote->vrm ?? '',
             'make' => $quote->vehicle?->make ?? '',
             'model' => $quote->vehicle?->model ?? '',
             'year' => $quote->vehicle?->year ?? '',

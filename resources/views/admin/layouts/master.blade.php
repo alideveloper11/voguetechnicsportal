@@ -160,7 +160,7 @@
     <script src="{{ asset('assets/vendor/libs/notyf/notyf.js') }}"></script>
     <script src="{{ asset('assets/vendor/libs/sweetalert2/sweetalert2.js') }}"></script>
     <script src="{{ asset('assets/vendor/libs/select2/select2.js') }}"></script>
-
+    <script src="{{ asset('assets/vendor/libs/flatpickr/flatpickr.js') }}" ></script>
     <script src="{{ asset('assets/vendor/libs/apex-charts/apexcharts.js') }}"></script>
     <script src="{{ asset('assets/vendor/libs/swiper/swiper.js') }}"></script>
     <script src="{{ asset('assets/vendor/libs/datatables-bs5/datatables-bootstrap5.js') }}"></script>
@@ -254,6 +254,25 @@
                     dropdownParent: $this.parent()
                 });
             });
+
+            if (typeof flatpickr === 'function') {
+                document.querySelectorAll('.flatpickr-date-time').forEach(function(element) {
+                    flatpickr(element, {
+                        enableTime: true,
+                        noCalendar: false,
+                        static: true,
+                        dateFormat: 'Y-m-d H:i'
+                    });
+                });
+
+                document.querySelectorAll('.flatpickr-date').forEach(function(element) {
+                    flatpickr(element, {
+                        monthSelectorType: 'static',
+                        static: true
+                    });
+                });
+            }
+
         });
 
         const notyf = new Notyf({

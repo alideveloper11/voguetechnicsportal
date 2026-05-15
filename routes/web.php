@@ -11,6 +11,8 @@ use App\Http\Controllers\BankController;
 use App\Http\Controllers\EmailTemplateController;
 use App\Http\Controllers\CustomerTypeController;
 use App\Http\Controllers\QuoteController;
+use App\Http\Controllers\PartController;
+use App\Http\Controllers\CalendarController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -27,18 +29,28 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     // Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+    Route::prefix('calendar')->name('calendar.')->group(function () {
+        Route::get('/', [CalendarController::class, 'index'])->name('index');
+        Route::get('bookings', [CalendarController::class, 'bookings'])->name('bookings');
+    });
+
     Route::prefix('quotes')->name('quotes.')->group(function () {
         Route::get('web-inquiries', [QuoteController::class, 'webInquiries'])->name('web-inquiries');
         Route::get('updated-quotes', [QuoteController::class, 'updatedQuotes'])->name('updated-quotes');
         Route::get('accepted-quotes', [QuoteController::class, 'acceptedQuotes'])->name('accepted-quotes');
+        Route::get('archived-quotes', [QuoteController::class, 'archivedQuotes'])->name('archived-quotes');
         Route::get('quote/{quote}/city-distance', [QuoteController::class, 'cityDistance'])->name('quote.city-distance');
         Route::get('quote/{quote}/email-log/{emailLog}', [QuoteController::class, 'emailLog'])->name('quote.email-log');
         Route::post('quote/preview-email', [QuoteController::class, 'previewEmail'])->name('quote.preview-email');
         Route::post('quote/vrm-search', [QuoteController::class, 'vrmSearch'])->name('quote.vrm-search');
         Route::post('quote/{quote}/send-email', [QuoteController::class, 'sendEmail'])->name('quote.send-email');
+        Route::post('quote/{quote}/accept', [QuoteController::class, 'acceptQuote'])->name('quote.accept');
         Route::post('quote/{quote}/archive', [QuoteController::class, 'archiveQuote'])->name('quote.archive');
         Route::resource('quote', QuoteController::class);
     });
+
+    // Parts
+    Route::resource('parts', PartController::class);
 
     // Website
     Route::resource('websites', WebsiteController::class);

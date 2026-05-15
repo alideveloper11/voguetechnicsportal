@@ -3,9 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use OwenIt\Auditing\Contracts\Auditable;
+use \OwenIt\Auditing\Auditable as Audit;
 
-class Quote extends Model
+class Quote extends Model implements Auditable
 {
+
+    use Audit;
+
     protected $fillable = [
         'quote_number',
         'vrm',
@@ -21,6 +26,7 @@ class Quote extends Model
         'status',
         'quote_type',
         'notes',
+        'booking_date',
         'email_count',
         'no_answer',
         'created_by',
@@ -29,6 +35,12 @@ class Quote extends Model
         'accepted_at',
         'archived_by',
         'archived_at',
+    ];
+
+    protected $casts = [
+        'booking_date' => 'datetime',
+        'accepted_at' => 'datetime',
+        'archived_at' => 'datetime',
     ];
 
     public function customer()

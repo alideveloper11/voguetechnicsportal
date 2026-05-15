@@ -2,7 +2,7 @@
     $vehicle = $quote->vehicle;
     $customer = $quote->customer;
     $titleParts = array_filter([
-        $vehicle?->make,
+        // $vehicle?->make,
         $vehicle?->model,
         $vehicle?->year,
         $vehicle?->fuel_type,
@@ -70,7 +70,7 @@
                 </div>
             </div>
             <div class="d-flex align-items-center gap-2">
-                <img src="{{ asset($quote->website?->logo) }}" class="img-fluid" width="100px" height="80px"  alt="{{ asset($quote->website?->logo) }}">
+                <img src="{{ asset($quote->website?->logo) }}" class="img-fluid" width="100px" height="80px" alt="{{ $quote->website?->name }}" title="{{ $quote->website?->name }}">
             </div>
             <div class="d-flex align-items-center gap-2">
                 <div class="btn-group position-static ms-6">
@@ -78,16 +78,27 @@
                         Actions
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                        <li>
-                            <a class="dropdown-item" href="{{ route('quotes.quote.edit', $quote) }}">
-                                <i class="icon-base ti tabler-edit me-2"></i>Proceed To Updated Quote
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="#">
-                                <i class="icon-base ti tabler-archive me-2"></i>Add To Archived Quote
-                            </a>
-                        </li>
+                        @can('proceed-to-updated-quote')
+                            <li>
+                                <a class="dropdown-item" href="{{ route('quotes.quote.edit', $quote) }}">
+                                    <i class="icon-base ti tabler-edit me-2"></i>Proceed To Updated Quote
+                                </a>
+                            </li>
+                        @endcan
+                        @can('proceed-to-archived-quote')
+                            <li>
+                                <a class="dropdown-item archiveQuote" href="javascript:void(0)" data-url="{{ url('quotes/quote/' . $quote->id . '/archive') }}" data-table="quoteListingTable">
+                                    <i class="icon-base ti tabler-archive me-2"></i>Proceed to Archive Quote
+                                </a>
+                            </li>
+                        @endcan
+                        @if (auth()->user()->hasRole('Admin'))
+                            <li>
+                                <a href="javascript:void(0)" class="dropdown-item deleteRow" data-url="{{ route('quotes.quote.destroy', $quote) }}" data-table="quoteListingTable">
+                                    <i class="icon-base ti tabler-trash me-2"></i>Delete Quote
+                                </a>
+                            </li>
+                        @endif
                     </ul>
                 </div>
 

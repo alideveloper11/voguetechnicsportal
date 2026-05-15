@@ -1,13 +1,15 @@
-// document.addEventListener('DOMContentLoaded', initializeCleave);
-
 $(document).ready(function () {
     $('.modal').on('hidden.bs.modal', function () {
         const $form = $(this).find('form');
-        $form[0].reset();
-        $form.find('input[name="_method"]').remove();
-        $form.attr('action', '#');
-        $form.find('select').val('').trigger('change');
-        $form.find('input[data-dropzone-remove-flag="true"]').val('0');
+
+        if ($form.length && $form[0]) {
+            $form[0].reset();
+            $form.find('input[name="_method"]').remove();
+            $form.attr('action', '#');
+            $form.find('select').val('').trigger('change');
+            $form.find('input[data-dropzone-remove-flag="true"]').val('0');
+        }
+
         $(this).find('.dropzone-upload').each(function () {
             resetDropzoneState(this);
         });
@@ -16,6 +18,21 @@ $(document).ready(function () {
     });
 });
 
+function reloadDataTable(tableReference) {
+    if (!tableReference) {
+        return;
+    }
+
+    const selector = tableReference.startsWith('#') || tableReference.startsWith('.')
+        ? tableReference
+        : `#${tableReference}`;
+
+    const $table = $(selector);
+
+    if ($table.length && $.fn.DataTable.isDataTable($table)) {
+        $table.DataTable().ajax.reload();
+    }
+}
 
 const dropzoneInstances = new Map();
 
@@ -168,8 +185,7 @@ $(document).ready(function () {
     initializeDropzones();
 });
 
-
-
+// Handle AJAX form submission
 $(document).on("submit", "form.ajax-form", function (e) {
     e.preventDefault();
     let form = $(this);
@@ -214,20 +230,10 @@ $(document).on("submit", "form.ajax-form", function (e) {
         }
     }
 
-    // // for quill editor
-    // if(typeof window.quillEditor !== 'undefined') {
-    //     formData.append('content', window.myEditor.root.innerHTML)
-    // }
-
     if ($.fn.summernote) {
         form.find('.summernote-editor').each(function () {
             formData.set($(this).attr('name'), $(this).summernote('code'));
         });
-    }
-
-    // for rich text editor
-    if(typeof richTextEditor !== 'undefined') {
-        formData.append('content', richTextEditor.getHTMLCode())
     }
 
     // blockUI();
@@ -249,13 +255,12 @@ $(document).on("submit", "form.ajax-form", function (e) {
             ShowToast("success", response.message);
 
             if (modal.length) {
-                // $('body').focus();
                 $(modal).find(':focus').blur();
                 modal.modal("hide");
             }
 
             if (tableId) {
-                $(tableId).DataTable().ajax.reload();
+                reloadDataTable(tableId);
             }
 
             let redirectUrl = form.data("redirect");
@@ -290,44 +295,6 @@ $(document).on("submit", "form.ajax-form", function (e) {
         },
     });
 });
-
-// function validatePropertyForm(form) {
-//     const checkedBillingOwner = form.find('.is_billing_owner:checked').length;
-//     if (checkedBillingOwner === 0) {
-//         // ShowToast("error", "At least one owner must be marked as a billing owner.");
-
-//          Swal.fire({
-//             icon: "error",
-//             title: "Please Select at least one billing owner.",
-//             text: "At least one owner must be marked as a billing owner. For billing purposes, it's essential to have a billing owner.",
-//             customClass: {
-//                 confirmButton: 'btn btn-primary waves-effect waves-light'
-//             },
-//             buttonsStyling: false,
-//             allowOutsideClick: false,
-//             allowEscapeKey: false,
-//             allowEnterKey: false
-//         });
-
-//         return false;
-//     }
-//     if (checkedBillingOwner > 1) { 
-//         Swal.fire({
-//             icon: "error",
-//             title: "Too many billing owners",
-//             text: "Only one owner can be marked as a billing owner.",
-//             customClass: {
-//                 confirmButton: 'btn btn-primary waves-effect waves-light'
-//             },
-//             buttonsStyling: false,
-//             allowOutsideClick: false,
-//             allowEscapeKey: false,
-//             allowEnterKey: false
-//         });
-//         return false;
-//     }
-//     return true;
-// }
 
 // Edit Record
 $(document).on("click", ".editRow", function (e) {
@@ -387,10 +354,7 @@ $(document).on("click", ".editRow", function (e) {
                         $el.val(value || '');
                     }
                 });
-
-
             });
-            // setTimeout(initializeCleave, 100);
         }
 
         if (Array.isArray(response.dropzones)) {
@@ -420,90 +384,6 @@ $(document).on("click", ".editRow", function (e) {
         $(modalSelector).modal('show');
     });
 });
-
-
-
-function initializeCleave() {
-    const phoneMask = document.getElementById('phone');
-    const cnic = document.getElementById('cnic');
-    const primary_phone = document.getElementById('primary_phone');
-    const secondaryphoneMask = document.getElementById('secondary_phone');
-
-    if (phoneMask) {
-        if (phoneMask.cleave) {
-            phoneMask.cleave.destroy();
-        }
-        
-        const originalPhoneValue = phoneMask.value.replace(/[^0-9]/g, '');
-        
-        phoneMask.cleave = new Cleave(phoneMask, {
-            delimiters: ['-'],
-            blocks: [4, 7],
-            numericOnly: true
-        });
-        
-        if (originalPhoneValue) {
-            phoneMask.cleave.setRawValue(originalPhoneValue);
-        }
-    }
-
-    if (primary_phone) {
-        if (primary_phone.cleave) {
-            primary_phone.cleave.destroy();
-        }
-        
-        const originalPhoneValue = primary_phone.value.replace(/[^0-9]/g, '');
-        
-        primary_phone.cleave = new Cleave(primary_phone, {
-            delimiters: ['-'],
-            blocks: [4, 7],
-            numericOnly: true
-        });
-        
-        if (originalPhoneValue) {
-            primary_phone.cleave.setRawValue(originalPhoneValue);
-        }
-    }
-
-    if (secondaryphoneMask) {
-        if (secondaryphoneMask.cleave) {
-            secondaryphoneMask.cleave.destroy();
-        }
-        
-        const originalPhoneValue = secondaryphoneMask.value.replace(/[^0-9]/g, '');
-        
-        secondaryphoneMask.cleave = new Cleave(secondaryphoneMask, {
-            delimiters: ['-'],
-            blocks: [4, 7],
-            numericOnly: true
-        });
-        
-        if (originalPhoneValue) {
-            secondaryphoneMask.cleave.setRawValue(originalPhoneValue);
-        }
-    }
-
-    if (cnic) {
-        if (cnic.cleave) {
-            cnic.cleave.destroy();
-        }
-        
-        const originalCnicValue = cnic.value.replace(/[^0-9]/g, '');
-        
-        cnic.cleave = new Cleave(cnic, {
-            delimiters: ['-', '-'],
-            blocks: [5, 7, 1],
-            uppercase: true
-        });
-        
-        if (originalCnicValue) {
-            cnic.cleave.setRawValue(originalCnicValue);
-        }
-    }
-}
-
-
-
 
 // Delete Record
 $(document).on("click", ".deleteRow", function (e) {
@@ -535,7 +415,7 @@ $(document).on("click", ".deleteRow", function (e) {
                     ShowToast("success", response.message);
 
                     if (tableId) {
-                        $(tableId).DataTable().ajax.reload();
+                        reloadDataTable(tableId);
                     }
                 },
                 error: function (jqXHR) {
@@ -559,7 +439,7 @@ $(document).on("click", ".archiveQuote", function (e) {
     let tableId = $(this).data("table");
     Swal.fire({
         title: 'Are you sure?',
-        text: "You won't be able to revert this!",
+        text: "You want to archive this!",
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Yes, archive it!',
@@ -583,7 +463,7 @@ $(document).on("click", ".archiveQuote", function (e) {
                     ShowToast("success", response.message);
 
                     if (tableId) {
-                        $(tableId).DataTable().ajax.reload();
+                        reloadDataTable(tableId);
                     }
                 },
                 error: function (jqXHR) {

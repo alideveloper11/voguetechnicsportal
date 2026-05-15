@@ -4,7 +4,7 @@
             <span class="input-group-text p-0 pe-2" id="basic-addon-search31">
                 <img src="{{ asset('assets/gb.svg') }}" width="40px" alt="">
             </span>
-            <input type="text" id="vrm_search" class="form-control" style="font-size: 22px;"
+            <input type="text" id="vrm_search" value="{{ old('vrm', $quote->vrm ?? '') }}" class="form-control" style="font-size: 22px;"
                 placeholder="Search VRM..." maxlength="7" aria-label="Search..."
                 aria-describedby="basic-addon-search31" />
             <span class="input-group-text p-0 pe-2" id="basic-addon-search31">
@@ -96,7 +96,7 @@
                 <div>
                     <div class="text-uppercase text-muted mb-1"
                         style="font-size:10px;letter-spacing:.05em;font-weight:600;">VIN Number</div>
-                    <div class="fw-semibold font-monospace" style="font-size:12px;" id="detail_vin_number">{{ $vehicle->vin_number ?? '' }}</div>
+                    <div class="fw-semibold font-monospace" style="font-size:12px;" id="detail_vin_number">{{ $vehicle->vin ?? '' }}</div>
                 </div>
             </div>
 

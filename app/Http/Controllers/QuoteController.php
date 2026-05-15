@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Quote;
+use App\Models\User;
 use App\Models\QuoteEmailLog;
 use App\Models\CustomerType;
 use App\Models\EmailTemplate;
@@ -17,14 +18,15 @@ use App\Services\QuoteService;
 
 class QuoteController extends Controller implements HasMiddleware
 {
-    protected array $updatedQuoteStatuses = ['portal_quote', 'update_quote', 'accepted'];
+    // protected array $updatedQuoteStatuses = ['portal_quote', 'update_quote', 'accepted'];
 
     public static function middleware(): array
     {
         return [
-            new Middleware('permission:view-quotes', only: ['index', 'show', 'webInquiries', 'updatedQuotes']),
+            new Middleware('permission:view-quotes', only: ['index', 'show', 'webInquiries', 'updatedQuotes', 'acceptedQuotes', 'cityDistance', 'emailLog']),
             new Middleware('permission:create-quotes', only: ['create', 'store']),
             new Middleware('permission:edit-quotes', only: ['edit', 'update']),
+            new Middleware('permission:proceed-to-accepted-quote', only: ['acceptQuote']),
             new Middleware('permission:delete-quotes', only: ['destroy']),
         ];
     }
@@ -56,6 +58,15 @@ class QuoteController extends Controller implements HasMiddleware
 
     public function updatedQuotes()
     {
+        $updatedQuoteSummary = [
+            'today' => Quote::where('status', 'update_quote')->whereDate('updated_at', now()->toDateString())->count(),
+            'yesterday' => Quote::where('status', 'update_quote')->whereDate('updated_at', now()->subDay()->toDateString())->count(),
+            'last_7_days' => Quote::where('status', 'update_quote')->whereBetween('updated_at', [
+                now()->copy()->subDays(6)->startOfDay(),
+                now()->copy()->endOfDay(),
+            ])->count(),
+        ];
+
         return $this->renderQuoteListing(
             Quote::with(['customer', 'vehicle', 'acceptedByUser', 'updatedByUser'])
                 ->where('status', 'update_quote')
@@ -63,12 +74,24 @@ class QuoteController extends Controller implements HasMiddleware
                 ->latest('id'),
             'Updated Quotes',
             'Quotes in portal, updated, and accepted states.',
-            'updated-quotes'
+            'updated-quotes',
+            [
+                'quoteSummary' => $updatedQuoteSummary,
+            ]
         );
     }
     
     public function acceptedQuotes()
     {
+        $acceptedQuoteSummary = [
+            'today' => Quote::where('status', 'accepted')->whereDate('updated_at', now()->toDateString())->count(),
+            'yesterday' => Quote::where('status', 'accepted')->whereDate('updated_at', now()->subDay()->toDateString())->count(),
+            'last_7_days' => Quote::where('status', 'accepted')->whereBetween('updated_at', [
+                now()->copy()->subDays(6)->startOfDay(),
+                now()->copy()->endOfDay(),
+            ])->count(),
+        ];
+
         return $this->renderQuoteListing(
             Quote::with(['customer', 'vehicle', 'acceptedByUser', 'updatedByUser'])
                 ->where('status', 'accepted')
@@ -76,7 +99,23 @@ class QuoteController extends Controller implements HasMiddleware
                 ->latest('id'),
             'Accepted Quotes',
             'Quotes that have been accepted.',
-            'accepted-quotes'
+            'accepted-quotes',
+            [
+                'quoteSummary' => $acceptedQuoteSummary,
+            ]
+        );
+    }
+
+    public function archivedQuotes()
+    {
+        return $this->renderQuoteListing(
+            Quote::with(['customer', 'vehicle', 'acceptedByUser', 'updatedByUser'])
+                ->where('status', 'archived')
+                ->select('quotes.*')
+                ->latest('id'),
+            'Archived Quotes',
+            'Quotes that have been archived.',
+            'archived-quotes'
         );
     }
 
@@ -98,11 +137,17 @@ class QuoteController extends Controller implements HasMiddleware
         $data = $request->validated();
         $quote = $quoteService->createQuote($data, 'web');
 
+        $redirect = match ($updatedQuote->status) {
+            'accepted' => route('quotes.accepted-quotes'),
+            'update_quote' => route('quotes.updated-quotes'),
+            default => route('quotes.quote.create'),
+        };
+        
         return response()->json([
             'status' => 'success',
             'message' => 'Quote created successfully.',
             'quote_id' => $quote->id,
-            'redirect' => route('quotes.quote.create'),
+            'redirect' => $redirect,
         ]);
     }
 
@@ -145,8 +190,9 @@ class QuoteController extends Controller implements HasMiddleware
         $quote->load(['customer', 'vehicle', 'quoteNotes.creator', 'emailLogs.sender']);
         $customerTypes = CustomerType::where('is_active', true)->get(['name', 'id']);
         $emailTemplates = EmailTemplate::where('is_active', true)->get(['name', 'id']);
+        $actionMode = request()->get('mode', 'edit');
 
-        return view('admin.quotes_management.create', compact('quote', 'customerTypes', 'emailTemplates'));
+        return view('admin.quotes_management.create', compact('quote', 'customerTypes', 'emailTemplates', 'actionMode'));
     }
 
     /**
@@ -154,13 +200,18 @@ class QuoteController extends Controller implements HasMiddleware
      */
     public function update(QuoteRequest $request, Quote $quote, QuoteService $quoteService)
     {
-        $quoteService->updateQuote($quote->id, $request->validated());
+        $updatedQuote = $quoteService->updateQuote($quote->id, $request->validated());
+        $redirect = match ($updatedQuote->status) {
+            'accepted' => route('quotes.accepted-quotes'),
+            'update_quote' => route('quotes.updated-quotes'),
+            default => route('quotes.quote.edit', ['quote' => $quote, 'mode' => $request->input('action_mode', 'edit')]),
+        };
 
         return response()->json([
             'status' => 'success',
             'message' => 'Quote updated successfully.',
-            'quote_id' => $quote->id,
-            'redirect' => route('quotes.quote.edit', $quote),
+            'quote_id' => $updatedQuote->id,
+            'redirect' => $redirect,
         ]);
     }
 
@@ -176,7 +227,34 @@ class QuoteController extends Controller implements HasMiddleware
         return response()->json([
             'status' => 'success',
             'message' => 'Quote email sent successfully.',
-            'redirect' => route('quotes.quote.edit', $quote),
+            'redirect' => match ($quote->fresh()->status) {
+                'accepted' => route('quotes.accepted-quotes'),
+                'update_quote' => route('quotes.updated-quotes'),
+                default => route('quotes.quote.edit', ['quote' => $quote, 'mode' => 'edit']),
+            },
+        ]);
+    }
+
+    public function acceptQuote(Request $request, Quote $quote, QuoteService $quoteService)
+    {
+        if ($quote->status !== 'update_quote') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Only updated quotes can be moved to accepted.',
+            ], 422);
+        }
+
+        $data = $request->validate([
+            'booking_date' => 'required|date',
+        ]);
+
+        $acceptedQuote = $quoteService->acceptQuote($quote->id, $data['booking_date']);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Quote accepted successfully.',
+            'quote_id' => $acceptedQuote->id,
+            'redirect' => route('quotes.accepted-quotes'),
         ]);
     }
 
@@ -306,13 +384,11 @@ class QuoteController extends Controller implements HasMiddleware
     }
 
 
-    protected function renderQuoteListing($query, string $pageTitle, string $pageDescription, string $listingType = 'all')
+    protected function renderQuoteListing($query, string $pageTitle, string $pageDescription, string $listingType = 'all', array $viewData = [])
     {
         if (request()->ajax()) {
             return DataTables::eloquent($query, $listingType)
                 ->addColumn('card_html', function (Quote $quote) use ($listingType) {
-                    // $quote->loadMissing(['customer', 'vehicle']);
-
                     if($listingType === 'web-inquiries') {
                         return view('admin.quotes_management.partials.quote-row-card-web-inquiries', [
                             'quote' => $quote,
@@ -324,8 +400,24 @@ class QuoteController extends Controller implements HasMiddleware
                         'listingType' => $listingType,
                     ])->render();
                 })
-                ->filter(function ($query) {
+                ->filter(function ($query) use ($listingType) {
                     $searchValue = request('search.value');
+                    $fromDate = request('from_date');
+                    $toDate = request('to_date');
+                    $userId = request('user_id');
+                    $dateColumn = $this->resolveListingDateColumn($listingType);
+
+                    if ($fromDate) {
+                        $query->whereDate($dateColumn, '>=', $fromDate);
+                    }
+
+                    if ($toDate) {
+                        $query->whereDate($dateColumn, '<=', $toDate);
+                    }
+
+                    if ($userId) {
+                        $query->where($this->resolveListingUserColumn($listingType), $userId);
+                    }
 
                     if (! $searchValue) {
                         return;
@@ -352,7 +444,31 @@ class QuoteController extends Controller implements HasMiddleware
                 ->make(true);
         }
 
-        return view('admin.quotes_management.index', compact('pageTitle', 'pageDescription', 'listingType'));
+        $users = User::where('status', 'active')->get(['id', 'name']);
+        return view('admin.quotes_management.index', array_merge(
+            compact('pageTitle', 'pageDescription', 'listingType', 'users'),
+            $viewData
+        ));
+    }
+
+    protected function resolveListingDateColumn(string $listingType): string
+    {
+        return match ($listingType) {
+            'updated-quotes' => 'quotes.updated_at',
+            'accepted-quotes' => 'quotes.accepted_at',
+            'archived-quotes' => 'quotes.archived_at',
+            default => 'quotes.created_at',
+        };
+    }
+
+    protected function resolveListingUserColumn(string $listingType): string
+    {
+        return match ($listingType) {
+            'updated-quotes' => 'quotes.updated_by',
+            'accepted-quotes' => 'quotes.accepted_by',
+            'archived-quotes' => 'quotes.archived_by',
+            default => 'quotes.created_by',
+        };
     }
 
     protected function lookupLocation(?string $address, string $city): ?array

@@ -23,6 +23,7 @@ class QuoteRequest extends FormRequest
     public function rules(): array
     {
        $rules = [
+            'action_mode' => 'nullable|string',
             'vrm' => 'required|string|max:7',
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',

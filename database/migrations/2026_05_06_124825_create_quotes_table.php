@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('quote_number')->unique();
             $table->foreignId('customer_id')->constrained('customers');
-            $table->foreignId('vehicle_id')->constrained('vehicles');
+            $table->foreignId('vehicle_id')->nullable()->constrained('vehicles');
             $table->foreignId('website_id')->nullable()->constrained('websites');
             $table->foreignId('email_template_id')->nullable()->constrained('email_templates');
             $table->decimal('quote_amount', 10, 2)->nullable();
@@ -28,6 +28,7 @@ return new class extends Migration
             $table->text('notes')->nullable();
             $table->integer('email_count')->default(0);
             $table->boolean('no_answer')->default(false);
+            $table->timestamp('booking_date')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users');
             $table->foreignId('updated_by')->nullable()->constrained('users');
             $table->foreignId('accepted_by')->nullable()->constrained('users');

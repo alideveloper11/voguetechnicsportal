@@ -26,6 +26,7 @@ class PermissionSeeder extends Seeder
                 'create-quotes',
                 'edit-quotes',
                 'delete-quotes',
+                'vrm-tracking',
                 'view-web-inquiries',
                 'view-accepted-quotes',
                 'view-archived-quotes',
@@ -33,13 +34,27 @@ class PermissionSeeder extends Seeder
                 'proceed-to-updated-quote',
                 'proceed-to-accepted-quote',
                 'proceed-to-archived-quote',
+                'proceed-to-reserve-parking',
                 'proceed-to-job-card',
-                'proceed-to-booking',
                 'proceed-to-sale',
                 'proceed-to-invoice',
                 'mark-as-paid',
             ],
 
+            // Calendar Management
+            'Calendar Management' => [
+                'view-calendar',
+                // 'create-calendar-events',
+                // 'edit-calendar-events',
+                // 'delete-calendar-events',
+            ],
+            // Part Management Permissions
+            'Part Management' => [
+                'view-parts',
+                'create-parts',
+                'edit-parts',
+                'delete-parts',
+            ],
 
             'User Management' => ['view-users', 'create-users', 'edit-users'],
             'Role Management' => ['view-roles', 'create-roles', 'edit-roles'],

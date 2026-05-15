@@ -86,7 +86,7 @@ class WebsiteController extends Controller implements HasMiddleware
     public function edit(Website $website)
     {
         return response()->json([
-            'fields' => ['code', 'name', 'url', 'email', 'phone', 'landline', 'address', 'status'],
+            'fields' => ['name', 'url', 'email', 'phone', 'landline', 'address', 'status'],
             'data' => $website,
             'dropzones' => [[
                 'selector' => '#website-logo-dropzone',

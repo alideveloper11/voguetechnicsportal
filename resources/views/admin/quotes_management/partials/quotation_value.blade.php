@@ -4,7 +4,7 @@
         <div class="row mb-3">
             <div class="col-12 col-md-4 mb-3">
                 <label class="form-label" for="email_template_id">Email Template</label>
-                <select id="email_template_id" name="email_template_id" class="select2 form-select" data-placeholder="Select Email Template">
+                <select id="email_template_id" name="email_template_id" class="select2 form-select" data-placeholder="Select Email Template" data-allow-clear="true">
                     <option value="">Select Email Template</option>
                     @foreach ($emailTemplates as $template)
                         <option value="{{ $template->id }}"
@@ -26,7 +26,7 @@
             </div>
             <div class="col-12 col-md-4 mb-3">
                 <label class="form-label" for="guarantee">Guarantee </label>
-                <select id="guarantee" name="guarantee" class="select2 form-select" data-placeholder="Select Guarantee">
+                <select id="guarantee" name="guarantee" class="select2 form-select" data-placeholder="Select Guarantee" data-allow-clear="true">
                     <option value="">Select Guarantee</option>
                     <option value="one_month"
                         {{ old('guarantee', $quote->guarantee ?? '') == 'one_month' ? 'selected' : '' }}>
@@ -80,7 +80,7 @@
             <div class="col-12 col-md-4 mb-3">
                 <label class="form-label" for="delivery_time">Delivery Time </label>
                 <select id="delivery_time" name="delivery_time" class="select2 form-select"
-                    data-placeholder="Select Delivery Time">
+                    data-placeholder="Select Delivery Time" data-allow-clear="true">
                     <option value="">Select Delivery Time</option>
                     <option value="next_day"
                         {{ old('delivery_time', $quote->delivery_time ?? '') == 'next_day' ? 'selected' : '' }}>
@@ -100,7 +100,7 @@
             <div class="col-12 col-md-4 mb-3">
                 <label class="form-label" for="offer_type">Offer Type </label>
                 <select id="offer_type" name="offer_type" class="select2 form-select"
-                    data-placeholder="Select Offer Type">
+                    data-placeholder="Select Offer Type" data-allow-clear="true">
                     <option value="">Select Offer Type</option>
                     <option value="new"
                         {{ old('offer_type', $quote->offer_type ?? '') == 'new' ? 'selected' : '' }}>

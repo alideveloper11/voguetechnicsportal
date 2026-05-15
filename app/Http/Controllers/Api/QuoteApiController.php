@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Models\Website;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\StoreApiQuoteRequest;
 use App\Services\QuoteService;
@@ -12,6 +13,7 @@ class QuoteApiController extends Controller
     public function store(StoreApiQuoteRequest $request, QuoteService $quoteService): JsonResponse
     {
         $data = $request->validated();
+        $data['website_id'] = Website::where('slug', $data['website_slug'])->value('id');
         $quote = $quoteService->createQuote($data, 'api');
 
         return response()->json([

@@ -42,9 +42,9 @@
                     value="{{ old('body_type', $vehicle->body_type ?? '') }}" required />
             </div>
             <div class="col-12 col-md-4 mb-3">
-                <label class="form-label" for="engine_type">Engine Type <span class="text-danger">*</span></label>
+                <label class="form-label" for="engine_type">Engine Type</label>
                 <input type="text" id="engine_type" name="engine_type" class="form-control" placeholder="Engine Type"
-                    value="{{ old('engine_type', $vehicle->engine_type ?? '') }}" required />
+                    value="{{ old('engine_type', $vehicle->engine_type ?? '') }}"/>
             </div>
 
             <input type="hidden" id="maximum_bhp" name="maximum_bhp" class="form-control" placeholder="Maximum BHP"

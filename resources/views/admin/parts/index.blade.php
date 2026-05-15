@@ -1,18 +1,17 @@
 @extends('admin.layouts.master')
-@section('title', 'Websites | Vogue Technics')
+@section('title', 'Parts | Vogue Technics')
 @section('content')
     <section>
         <div class="card">
             <div class="card-datatable table-responsive pt-0">
-                <table class="table" id="websitesTable">
+                <table class="table" id="partsTable">
                     <thead>
                         <tr>
                             <th class="not_include"></th>
                             <th>Sr #</th>
                             <th>Name</th>
-                            <th>Slug</th>
-                            <th>Phone</th>
-                            <th>Landline</th>
+                            <th>Category</th>
+                            <th>Created By</th>
                             <th>Status</th>
                             <th class="not_include">Action</th>
                         </tr>
@@ -21,67 +20,43 @@
             </div>
         </div>
 
-        <!-- Add Website Modal -->
-        <div class="modal fade" id="websiteModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static"
+        <!-- Add Part Modal -->
+        <div class="modal fade" id="partModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static"
             data-bs-keyboard="false">
-            <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="modelHeading">Add Website</h5>
+                        <h5 class="modal-title" id="modelHeading">Add Part</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <form action="{{ route('websites.store') }}" method="POST" class="ajax-form"
-                        data-datatable="#websitesTable">
+                    <form action="{{ route('parts.store') }}" method="POST" class="ajax-form"
+                        data-datatable="#partsTable">
                         <div class="modal-body">
                             @csrf
-                            <input type="hidden" name="remove_logo" value="0" data-dropzone-remove-flag="true">
                             <div class="row g-3">
-                                <div class="col-12 col-md-4">
+                                <div class="col-12">
                                     <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
                                     <input type="text" name="name" id="name" class="form-control"
                                         placeholder="Enter Name" required />
                                 </div>
-                                <div class="col-12 col-md-4">
-                                    <label for="url" class="form-label">Url <span class="text-danger">*</span></label>
-                                    <input type="text" name="url" id="url" class="form-control"
-                                        placeholder="Enter URL" required />
-                                </div>
-                                <div class="col-12 col-md-4">
-                                    <label for="email" class="form-label">Email</label>
-                                    <input type="email" name="email" id="email" class="form-control"
-                                        placeholder="xxxx@xxx.xx" autocomplete="off" />
-                                </div>
-                                <div class="col-12 col-md-4">
-                                    <label for="phone" class="form-label">Phone</label>
-                                    <input type="text" name="phone" id="phone" class="form-control"
-                                        placeholder="Phone" autocomplete="off" />
-                                </div>
-                                <div class="col-12 col-md-4">
-                                    <label for="landline" class="form-label">Landline</label>
-                                    <input type="text" name="landline" id="landline" class="form-control"
-                                        placeholder="Landline" autocomplete="off" />
-                                </div>
-                                <div class="col-12 col-md-4">
-                                    <label for="address" class="form-label">Address</label>
-                                    <input type="text" name="address" id="address" class="form-control" placeholder="Address" autocomplete="off" />
-                                </div>
                                 
                                 <div class="col-12">
-                                    <label class="form-label">Logo</label>
-                                    <div class="needsclick dropzone dropzone-upload" id="website-logo-dropzone"
-                                        data-input-name="logo" data-max-files="1" data-remove-flag-input="remove_logo">
-                                        <div class="dz-message needsclick">
-                                            Drop Logo here or click to upload
-                                        </div>
-                                        <div class="fallback">
-                                            <input name="logo" type="file" />
-                                        </div>
-                                    </div>
+                                    <label for="category" class="form-label">Category</label>
+                                    <select name="category" id="category" class="form-control select2" data-placeholder="Select Category">
+                                        <option value="">Select Category</option>
+                                        <option value="ancillaries">Ancillaries</option>
+                                        <option value="consumeables">Consumeables</option>
+                                        <option value="cylinder_head">Cylinder Head</option>
+                                        <option value="driveline">Driveline</option>
+                                        <option value="engine">Engine</option>
+                                        <option value="gearboxes">Gearboxes</option>
+                                        <option value="engine_component">Other</option>
+                                    </select>
                                 </div>
 
-                                <div class="col-sm-6 p-6">
+                                <div class="col-sm-6 p-2">
                                     <label class="switch">
-                                    <input type="checkbox" class="switch-input" name="status" value="1" />
+                                    <input type="checkbox" class="switch-input" name="is_active" value="1" />
                                     <span class="switch-toggle-slider">
                                         <span class="switch-on">
                                         <i class="icon-base ti tabler-check"></i>
@@ -112,13 +87,13 @@
         $(document).ready(function() {
             let tableTitle = document.createElement('h5');
             tableTitle.classList.add('card-title', 'mb-0', 'text-md-start', 'text-center', 'pb-md-0', 'pb-6');
-            tableTitle.innerHTML = 'List of Websites';
+            tableTitle.innerHTML = 'List of Parts';
 
-            var dataTable = $('#websitesTable').DataTable({
+            var dataTable = $('#partsTable').DataTable({
                 processing: false,
                 serverSide: true,
                 responsive: true,
-                ajax: "{{ route('websites.index') }}",
+                ajax: "{{ route('parts.index') }}",
                 columns: [{
                         data: ''
                     },
@@ -132,16 +107,17 @@
                         data: "name"
                     },
                     {
-                        data: "slug"
+                        data: "category",
+                        render: function(data, type, full, meta){
+                            return data.replace(/_/g, ' ').toUpperCase();
+                        }
                     },
                     {
-                        data: "phone"
+                        data: "created_by.name",
+                        name: "created_by.name",
                     },
                     {
-                        data: "landline"
-                    },
-                    {
-                        data: 'status',
+                        data: 'is_active',
                         render: function(data, type, full, meta) {
                             let badgeClass = '';
                             let statusText = '';
@@ -177,69 +153,25 @@
                         orderable: false,
                         searchable: false,
                         render: function(data, type, full, meta) {
-                            let targetUrl = "{{ url('websites') }}";
+                            let deleteUrl = '{{ route('parts.destroy', ':id') }}'.replace(':id', full.id);
+                            let targetUrl = "{{ url('parts') }}";
 
                             let btn = '';
-                            @can('edit-websites')
+                            @can('edit-parts')
                                 btn +=
                                     '<a href="javascript:void(0)" class="btn btn-text-secondary rounded-pill btn-icon item-edit editRow" data-id="' +
                                     full.id + '" data-target-url="' + targetUrl +
-                                    '" data-form="#websiteModal form" data-modal="#websiteModal" title="Edit Website"><i class="icon-base ti tabler-pencil"></i></a>';
+                                    '" data-form="#partModal form" data-modal="#partModal" title="Edit Part"><i class="icon-base ti tabler-edit"></i></a>';
                             @endcan
+
+                            @can('delete-parts')
+                                btn +=
+                                    '<a href="javascript:void(0)" class="btn btn-text-danger rounded-pill btn-icon deleteRow" data-url="'+deleteUrl+'" data-table="#partsTable" title="Delete Part"><i class="icon-base ti tabler-trash"></i></a>';
+                            @endcan
+
                             return btn;
                         }
                     },
-                    {
-                        targets: 2,
-                        responsivePriority: 3,
-                        render: function(data, type, full, meta) {
-                            var name = full['name'];
-                            var email = full['email'];
-                            var url = full['url'];
-                            var image = full['logo'];
-                            var output;
-                            let baseUrl = "{{ asset('') }}";
-
-                            if (image) {
-                                // For Avatar image
-                                output =
-                                    `<img src="${image}" alt="Avatar" class="rounded-circle">`;
-                            } else {
-                                // For Avatar badge
-                                var stateNum = Math.floor(Math.random() * 6);
-                                var states = ['success', 'danger', 'warning', 'info', 'dark',
-                                    'primary', 'secondary'
-                                ];
-                                var state = states[stateNum];
-                                var initials = (name.match(/\b\w/g) || []).map(char => char
-                                    .toUpperCase());
-                                initials = ((initials.shift() || '') + (initials.pop() || ''))
-                                    .toUpperCase();
-                                output = '<span class="avatar-initial rounded-circle bg-label-' +
-                                    state + '">' + initials + '</span>';
-                            }
-
-                            // Creates full output for row
-                            var row_output =
-                                '<div class="d-flex justify-content-start align-items-center user-name">' +
-                                '<div class="avatar-wrapper">' +
-                                '<div class="avatar avatar-sm me-4">' +
-                                output +
-                                '</div>' +
-                                '</div>' +
-                                '<div class="d-flex flex-column">' +
-                                '<a href="' + url + '" class="text-heading text-truncate" target="_blank"><span class="fw-medium">' +
-                                name +
-                                '</span></a>' +
-                                '<small>' +
-                                email +
-                                '</small>' +
-                                '</div>' +
-                                '</div>';
-                            return row_output;
-                        }
-                    }
-
                 ],
                 order: [
                     [1, 'desc']
@@ -307,18 +239,14 @@
                                         }
                                     ]
                                 },
-                                @can('create-websites')
+                                @can('create-parts')
                                     {
                                         text: '<span class="d-flex align-items-center gap-2"><i class="icon-base ti tabler-plus icon-sm"></i> <span class="d-none d-sm-inline-block">Add New Record</span></span>',
                                         className: 'create-new btn btn-primary',
                                         attr: {
                                             'data-bs-toggle': 'modal',
-                                            'data-bs-target': '#websiteModal'
+                                            'data-bs-target': '#partModal'
                                         }
-                                        // action: function(e, dt, node, config) {
-                                        //     window.location.href =
-                                        //         '{{ route('websites.create') }}';
-                                        // }
                                     }
                                 @endcan
                             ]

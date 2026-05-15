@@ -14,6 +14,8 @@
             @endif
             <input type="hidden" name="submit_action" id="submit_action" value="save">
             <input type="hidden" name="quote_id" id="quote_id" value="{{ $quote->id ?? '' }}">
+            <input type="hidden" name="website_id" value="{{ $quote->website_id ?? null }}">
+            <input type="hidden" name="action_mode" id="action_mode" value="{{ $actionMode ?? 'edit' }}">
             <div class="row">
                 <div class="col-12 col-md-8">
                     @include('admin.quotes_management.partials.customer-form', [
@@ -142,6 +144,7 @@
                 </div>
             </div>
         </div>
+
     </section>
 @endsection
 @section('scripts')
@@ -152,6 +155,7 @@
         const quoteCreateUrl = "{{ route('quotes.quote.create') }}";
         const quoteSendEmailUrlTemplate = "{{ route('quotes.quote.send-email', ['quote' => '__QUOTE_ID__']) }}";
         const currentQuoteId = "{{ $quote->id ?? '' }}";
+        const currentActionMode = "{{ $actionMode ?? 'edit' }}";
         const quoteEmailPreviewModal = new bootstrap.Modal(document.getElementById('quoteEmailPreviewModal'));
         const quoteEmailLogModal = new bootstrap.Modal(document.getElementById('quoteEmailLogModal'));
 
@@ -334,6 +338,8 @@
                 formData.set('quote_id', currentQuoteId);
             }
 
+            formData.set('action_mode', currentActionMode);
+
             $.ajax({
                 url: quoteStorePreviewUrl,
                 type: 'POST',
@@ -456,7 +462,7 @@
                             $('#detail_engine_number').text(result.data.engine_number || '');
                             $('#detail_vin_number').text(result.data.vin || '');
                             $('#detail_color').text(result.data.color || '');
-                            $('#detail_body_type').text(result.data.body_type || '');
+                            $('#detail_body_type').text(result.data.body_type || result.data.body_style || '');
                             $('#detail_doors').text(result.data.number_of_doors || '');
                             $('#detail_seating_capacity').text(result.data.seat_capacity || '');
                             $('#detail_wheel_plan').text(result.data.wheel_plan || '');
@@ -471,7 +477,7 @@
                             $('#engine_size').val(result.data.size);
                             $('#year').val(result.data.year);
                             $('#engine_code').val(result.data.engine_code);
-                            $('#body_type').val(result.data.body_type);
+                            $('#body_type').val(result.data.body_type || result.data.body_style || '');
                             $('#engine_type').val(result.data.engine_type || '');
                             $('#engine_number').val(result.data.engine_number || '');
                             $('#vin').val(result.data.vin || '');
@@ -483,7 +489,12 @@
                             $('#maximum_bhp').val(result.data.maximum_bhp || '');
                             $('#transmission').val(result.data.transmission || '');
                             $('#co2_emissions').val(result.data.co2 || '');
-                            fillCustomerInformation(result.data.customer || null);
+
+                            if (result.data.customer) {
+                                fillCustomerInformation(result.data.customer);
+                            } else if (!currentQuoteId) {
+                                fillCustomerInformation(null);
+                            }
                         } else {
                             clearVehicleInformation();
                             ShowToast('error', result.message);

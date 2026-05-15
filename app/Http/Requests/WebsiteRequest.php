@@ -49,7 +49,6 @@ class WebsiteRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
-            // 'code' => 'required|string|max:255|unique:websites,code',
             'name' => 'required|string|max:255',
             'slug' => 'required|string|max:255|unique:websites,slug',
             'url' => 'required|string|max:255|unique:websites,url',
@@ -64,7 +63,6 @@ class WebsiteRequest extends FormRequest
 
         if (in_array($this->method(), ['PUT', 'PATCH'])) {
             $website = $this->route()->parameter('website');
-            // $rules['code'] = 'required|string|max:255|unique:websites,code,' . $website->id;
             $rules['slug'] = 'required|string|max:255|unique:websites,slug,' . $website->id;
             $rules['url'] = 'required|string|max:255|unique:websites,url,' . $website->id;
             $rules['logo'] = 'nullable|image|mimes:jpg,jpeg,png,webp,svg|max:2048';

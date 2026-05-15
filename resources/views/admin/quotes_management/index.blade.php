@@ -8,8 +8,97 @@
 
 @section('content')
     <section>
+        @if (($listingType === 'updated-quotes' || $listingType === 'accepted-quotes') && isset($quoteSummary))
+            <div class="row g-4 mb-4">
+                <div class="col-xl-4 col-md-6">
+                    <div class="card h-100 updated-quote-stat-card">
+                        <div class="card-body py-3">
+                            <div class="d-flex align-items-center">
+                                <div class="stat-icon bg-label-primary me-3">
+                                    <i class="icon-base ti tabler-calendar-time text-primary icon-24px"></i>
+                                </div>
+                                <div>
+                                    <h5 class="card-title mb-1">Quote {{ $listingType === 'updated-quotes' ? 'Updated' : 'Accepted' }} Today</h5>
+                                </div>
+                            </div>
+                            <h3 class="mb-0 text-center">{{ $quoteSummary['today'] ?? 0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-4 col-md-6">
+                    <div class="card h-100 updated-quote-stat-card">
+                        <div class="card-body py-3">
+                            <div class="d-flex align-items-center">
+                                <div class="stat-icon bg-label-warning me-3">
+                                    <i class="icon-base ti tabler-calendar-minus text-warning icon-24px"></i>
+                                </div>
+                                <div>
+                                    <h5 class="card-title mb-1">Quote {{ $listingType === 'updated-quotes' ? 'Updated' : 'Accepted' }} Yesterday</h5>
+                                </div>
+                            </div>
+                            <h3 class="mb-0 text-center">{{ $quoteSummary['yesterday'] ?? 0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-4 col-md-6">
+                    <div class="card h-100 updated-quote-stat-card">
+                        <div class="card-body py-3">
+                            <div class="d-flex align-items-center">
+                                <div class="stat-icon bg-label-info me-3">
+                                    <i class="icon-base ti tabler-calendar-stats text-info icon-24px"></i>
+                                </div>
+                                <div>
+                                    <h5 class="card-title mb-1">Quote {{ $listingType === 'updated-quotes' ? 'Updated' : 'Accepted' }} Last 7 Days</h5>
+                                </div>
+                            </div>
+                            <h3 class="mb-0 text-center">{{ $quoteSummary['last_7_days'] ?? 0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        <div class="card mb-4">
+            <div class="card-header py-3 border-bottom">
+                <button type="button" class="quote-filter-toggle collapsed" data-bs-toggle="collapse" data-bs-target="#quoteFiltersCollapse" aria-expanded="false" aria-controls="quoteFiltersCollapse">
+                    <span class="h5 card-title mb-0"><i class="icon-base ti tabler-adjustments me-1 text-success icon-24px"></i>Filter Quotes</span>
+                    <span class="quote-filter-toggle-icon" id="quoteFiltersToggleIcon">+</span>
+                </button>
+            </div>
+            <div id="quoteFiltersCollapse" class="collapse">
+                <div class="card-body pt-4">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-12 col-md-4 col-lg-2">
+                            <label class="form-label" for="quoteFilterFromDate">From Date</label>
+                            <input type="text" id="quoteFilterFromDate" class="form-control flatpickr-date" placeholder="YYYY-MM-DD">
+                        </div>
+                        <div class="col-12 col-md-4 col-lg-2">
+                            <label class="form-label" for="quoteFilterToDate">To Date</label>
+                            <input type="text" id="quoteFilterToDate" class="form-control flatpickr-date" placeholder="YYYY-MM-DD">
+                        </div>
+                        <div class="col-12 col-md-4 col-lg-3">
+                            <label for="quoteFilterUserId" class="form-label">User</label>
+                            <select id="quoteFilterUserId" class="select2 form-select" data-allow-clear="true" data-placeholder="Select User">
+                                <option value=""></option>
+                                @foreach ($users as $user)
+                                    <option value="{{ $user->id }}">{{ $user->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-12 col-lg-5">
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-primary" id="applyQuoteFilters">Apply Filters</button>
+                                <button type="button" class="btn btn-primary" id="downloadExcel"><i class="icon-base ti tabler-file-spreadsheet me-1"></i>Download Excel</button>
+                                <button type="button" class="btn btn-label-secondary" id="resetQuoteFilters">Reset</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="card quote-table-shell">
-            <div class="card-header border-bottom">
+            <div class="card-header py-3 border-bottom">
                 <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
                     <div>
                         <h4 class="card-title mb-1">{{ $pageTitle ?? 'Quotes' }}</h4>
@@ -17,7 +106,7 @@
                     </div>
                 </div>
             </div>
-            <div class="card-body pt-4">
+            <div class="card-body">
                 <div class="table-responsive">
                     <table class="table quote-listing-table" id="quoteListingTable">
                         <thead class="d-none">
@@ -183,6 +272,39 @@
                 </div>
             </div>
         </div>
+
+        <div class="modal fade" id="acceptQuoteModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Proceed To Accept Quote</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="acceptQuoteUrl">
+                        <div class="mb-3">
+                            <div class="text-body-secondary small mb-1">Quote Reference</div>
+                            <div class="fw-semibold" id="acceptQuoteReference">-</div>
+                        </div>
+                        <div>
+                            <label for="acceptBookingDate" class="form-label">Datetime Picker</label>
+                            <input type="text" class="form-control flatpickr-date-time" placeholder="YYYY-MM-DD HH:MM" id="acceptBookingDate" />
+                            {{-- <label class="form-label" for="acceptBookingDate">Booking Date</label>
+                            <input type="date" id="acceptBookingDate" class="form-control"> --}}
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-success" id="acceptQuoteSubmitButton">
+                            <span class="accept-quote-button-text">Update</span>
+                            <span class="accept-quote-button-loader d-none ms-2">
+                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </section>
 @endsection
 
@@ -194,14 +316,17 @@
             const cityDistanceModal = new bootstrap.Modal(cityDistanceModalElement);
             const viewDetailsModalElement = document.getElementById('viewDetailsModal');
             const viewDetailsModal = new bootstrap.Modal(viewDetailsModalElement);
+            const acceptQuoteModalElement = document.getElementById('acceptQuoteModal');
+            const acceptQuoteModal = new bootstrap.Modal(acceptQuoteModalElement);
+            const quoteFiltersCollapseElement = document.getElementById('quoteFiltersCollapse');
+            const quoteFiltersToggleIcon = document.getElementById('quoteFiltersToggleIcon');
             let cityDistanceMap = null;
             let londonMarker = null;
             let customerMarker = null;
             let routeLine = null;
             let londonMarkerIcon = null;
             let customerMarkerIcon = null;
-
-            $('#quoteListingTable').DataTable({
+            const quoteListingTable = $('#quoteListingTable').DataTable({
                 processing: false,
                 serverSide: true,
                 searching: true,
@@ -209,7 +334,14 @@
                 deferRender: true,
                 ordering: false,
                 pageLength: 10,
-                ajax: window.location.href,
+                ajax: {
+                    url: window.location.href,
+                    data: function(d) {
+                        d.from_date = $('#quoteFilterFromDate').val();
+                        d.to_date = $('#quoteFilterToDate').val();
+                        d.user_id = $('#quoteFilterUserId').val();
+                    }
+                },
                 columns: [{
                     data: 'card_html',
                     name: 'quote_number',
@@ -252,6 +384,38 @@
                     bottomEnd: 'paging'
                 }
             });
+
+            $('#applyQuoteFilters').on('click', function() {
+                quoteListingTable.ajax.reload();
+            });
+
+            $('#resetQuoteFilters').on('click', function() {
+                $('#quoteFilterFromDate, #quoteFilterToDate').val('');
+                $('#quoteFilterUserId').val('').trigger('change');
+                quoteListingTable.ajax.reload();
+            });
+
+            $('#quoteFilterUserId').on('change', function() {
+                quoteListingTable.ajax.reload();
+            });
+
+            if (quoteFiltersCollapseElement && quoteFiltersToggleIcon) {
+                quoteFiltersCollapseElement.addEventListener('show.bs.collapse', function() {
+                    quoteFiltersToggleIcon.textContent = '-';
+                });
+
+                quoteFiltersCollapseElement.addEventListener('hide.bs.collapse', function() {
+                    quoteFiltersToggleIcon.textContent = '+';
+                });
+            }
+
+            function setAcceptQuoteLoading(isLoading) {
+                const button = $('#acceptQuoteSubmitButton');
+
+                button.prop('disabled', isLoading);
+                button.find('.accept-quote-button-text').text(isLoading ? 'Updating...' : 'Update');
+                button.find('.accept-quote-button-loader').toggleClass('d-none', !isLoading);
+            }
 
             function getMarkerIcon(type) {
                 if (typeof L === 'undefined') {
@@ -450,6 +614,59 @@
                         $('#viewDetailError')
                             .removeClass('d-none')
                             .text(jqXHR.responseJSON?.message || 'Unable to fetch detail for this quote.');
+                    }
+                });
+            });
+
+            $(document).on('click', '.js-accept-quote', function() {
+                $('#acceptQuoteUrl').val($(this).data('url'));
+                $('#acceptQuoteReference').text($(this).data('quote-number') || '-');
+                $('#acceptBookingDate').val($(this).data('booking-date') || '');
+                acceptQuoteModal.show();
+            });
+
+            $('#acceptQuoteSubmitButton').on('click', function() {
+                const url = $('#acceptQuoteUrl').val();
+                const bookingDate = $('#acceptBookingDate').val();
+
+                if (!bookingDate) {
+                    ShowToast('error', 'Please select a booking date.');
+                    return;
+                }
+
+                setAcceptQuoteLoading(true);
+
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: {
+                        _token: $('meta[name="csrf-token"]').attr('content'),
+                        booking_date: bookingDate
+                    },
+                    success: function(response) {
+                        setAcceptQuoteLoading(false);
+                        ShowToast('success', response.message);
+                        acceptQuoteModal.hide();
+                        $('#quoteListingTable').DataTable().ajax.reload();
+                        // if (response.redirect) {
+                        //     setTimeout(function() {
+                        //         window.location.href = response.redirect;
+                        //     }, 700);
+                        // }
+                    },
+                    error: function(jqXHR) {
+                        setAcceptQuoteLoading(false);
+
+                        if (jqXHR.status === 422 && jqXHR.responseJSON?.errors) {
+                            $.each(jqXHR.responseJSON.errors, function(field, messages) {
+                                $.each(messages, function(index, message) {
+                                    ShowToast('error', message);
+                                });
+                            });
+                            return;
+                        }
+
+                        ShowToast('error', jqXHR.responseJSON?.message || 'Unable to accept quote.');
                     }
                 });
             });

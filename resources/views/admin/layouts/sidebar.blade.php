@@ -43,7 +43,90 @@
             </li>
         @endcan
 
+        <!-- Quotes Management -->
+        @canany(['view-quotes', 'create-quotes', 'edit-quotes', 'delete-quotes', 'view-web-inquiries', 'view-accepted-quotes', 'view-archived-quotes', 'view-updated-quotes', 'proceed-to-accepted-quote', 'proceed-to-archived-quote', 'proceed-to-job-card', 'proceed-to-sale', 'proceed-to-invoice', 'mark-as-paid', 'vrm-tracking'])
+            <li class="menu-header small">
+                <span class="menu-header-text" data-i18n="Quotes Management">Quotes Management</span>
+            </li>
+
+            <li class="menu-item {{ request()->segment(2) == 'vrm-tracker' || request()->segment(3) == 'create' || request()->segment(2) == 'web-inquiries' || request()->segment(2) == 'updated-quotes' || request()->segment(2) == 'accepted-quotes' ? 'active open' : '' }}">
+                <a href="javascript:void(0);" class="menu-link menu-toggle">
+                    <i class="menu-icon icon-base ti tabler-smart-home"></i>
+                    <div data-i18n="Quotes">Quotes</div>
+                </a>
+                <ul class="menu-sub">
+                    @can('vrm-tracking')
+                        <li class="menu-item {{ request()->segment(2) == 'vrm-tracker' ? 'active' : '' }}">
+                            <a href="#" class="menu-link">
+                                <div data-i18n="VRM Tracker">Vrm Tracker</div>
+                            </a>
+                        </li>
+                    @endcan
+                    @can('create-quotes')
+                        <li class="menu-item {{ request()->segment(2) == 'quote' && request()->segment(3) == 'create' ? 'active' : '' }}">
+                            <a href="{{ route('quotes.quote.create') }}" class="menu-link">
+                                <div data-i18n="New Quote">New Quote</div>
+                            </a>
+                        </li>
+                    @endcan
+                    @can('view-web-inquiries')
+                        <li class="menu-item {{ request()->segment(2) == 'web-inquiries' ? 'active' : '' }}">
+                            <a href="{{ route('quotes.web-inquiries') }}" class="menu-link">
+                                <div data-i18n="Web Inquiries">Web Inquiries</div>
+                            </a>
+                        </li>
+                    @endcan
+                    @can('view-updated-quotes')
+                        <li class="menu-item {{ request()->segment(2) == 'updated-quotes' ? 'active' : '' }}">
+                            <a href="{{ route('quotes.updated-quotes') }}" class="menu-link">
+                                <div data-i18n="Updated Quotes">Updated Quotes</div>
+                            </a>
+                        </li>
+                    @endcan
+                    @can('view-accepted-quotes')
+                        <li class="menu-item {{ request()->segment(2) == 'accepted-quotes' ? 'active' : '' }}">
+                            <a href="{{ route('quotes.accepted-quotes') }}" class="menu-link">
+                                <div data-i18n="Accepted Quotes">Accepted Quotes</div>
+                            </a>
+                        </li>
+                    @endcan
+                    <li class="menu-item">
+                        <a href="#" class="menu-link">
+                            <div data-i18n="Reserve Parking">Reserve Parking</div>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="#" class="menu-link">
+                            <div data-i18n="Job Card">Job Card</div>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="#" class="menu-link">
+                            <div data-i18n="Sales">Sales</div>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+        @endcanany
+
+        <!-- Calendar -->
+        @can('view-calendar')
+            <li class="menu-header small">
+                <span class="menu-header-text" data-i18n="Calendar">Calendar</span>
+            </li>
+            <li class="menu-item {{ request()->segment(1) == 'calendar' ? 'active' : '' }}">
+                <a href="{{ route('calendar.index') }}" class="menu-link">
+                    <i class="menu-icon icon-base ti tabler-calendar"></i>
+                    <div data-i18n="Calendar">Calendar</div>
+                </a>
+            </li>
+        @endcan
+
+        
         <!-- Website Management -->
+        <li class="menu-header small">
+            <span class="menu-header-text" data-i18n="Settings">Settings</span>
+        </li>
         @can('view-websites')
             <li class="menu-item {{ request()->segment(1) == 'websites' ? 'active' : '' }}">
                 <a href="{{route('websites.index')}}" class="menu-link">
@@ -83,54 +166,18 @@
             </li>
         @endcan
 
-        <!-- Quotes Management -->
-        <li class="menu-header small">
-            <span class="menu-header-text" data-i18n="Quotes Management">Quotes Management</span>
-        </li>
-
-        <li class="menu-item {{ request()->segment(1) == 'quotes' ? 'active open' : '' }}">
-            <a href="javascript:void(0);" class="menu-link menu-toggle">
-                <i class="menu-icon icon-base ti tabler-smart-home"></i>
-                <div data-i18n="Quotes">Quotes</div>
-            </a>
-            <ul class="menu-sub">
-                <li class="menu-item {{ request()->segment(2) == 'vrm-tracker' ? 'active' : '' }}">
-                    <a href="#" class="menu-link">
-                        <div data-i18n="VRM Tracker">Vrm Tracker</div>
-                    </a>
-                </li>
-                <li class="menu-item {{ request()->segment(2) == 'quote' && request()->segment(3) == 'create' ? 'active' : '' }}">
-                    <a href="{{ route('quotes.quote.create') }}" class="menu-link">
-                        <div data-i18n="New Quote">New Quote</div>
-                    </a>
-                </li>
-                <li class="menu-item {{ request()->segment(2) == 'web-inquiries' ? 'active' : '' }}">
-                    <a href="{{ route('quotes.web-inquiries') }}" class="menu-link">
-                        <div data-i18n="Web Inquiries">Web Inquiries</div>
-                    </a>
-                </li>
-                <li class="menu-item {{ request()->segment(2) == 'updated-quotes' ? 'active' : '' }}">
-                    <a href="{{ route('quotes.updated-quotes') }}" class="menu-link">
-                        <div data-i18n="Updated Quotes">Updated Quotes</div>
-                    </a>
-                </li>
-                <li class="menu-item {{ request()->segment(2) == 'accepted-quotes' ? 'active' : '' }}">
-                    <a href="{{ route('quotes.accepted-quotes') }}" class="menu-link">
-                        <div data-i18n="Accepted Quotes">Accepted Quotes</div>
-                    </a>
-                </li>
-                <li class="menu-item">
-                    <a href="#" class="menu-link">
-                        <div data-i18n="Job Card">Job Card</div>
-                    </a>
-                </li>
-                <li class="menu-item">
-                    <a href="#" class="menu-link">
-                        <div data-i18n="Sales">Sales</div>
-                    </a>
-                </li>
-            </ul>
-        </li>
+        <!-- Part Management -->
+        @can('view-parts')
+            <li class="menu-header small">
+                <span class="menu-header-text" data-i18n="Parts Management">Parts Management</span>
+            </li>
+            <li class="menu-item {{ request()->segment(1) == 'parts' ? 'active' : '' }}">
+                <a href="{{route('parts.index')}}" class="menu-link">
+                    <i class="menu-icon icon-base ti tabler-cube"></i>
+                    <div data-i18n="Parts">Parts</div>
+                </a>
+            </li>
+        @endcan
 
         <!-- Ramp Management -->
         {{-- <li class="menu-header small">
@@ -167,15 +214,17 @@
         </li> --}}
 
         <!-- Archived Quotes -->
-        <li class="menu-header small">
-            <span class="menu-header-text" data-i18n="Archived Quotes">Archived Quotes</span>
-        </li>
-        <li class="menu-item {{ request()->segment(2) == 'archived' ? 'active' : '' }}">
-            <a href="" class="menu-link">
-                <i class="menu-icon icon-base ti tabler-archive"></i>
-                <div data-i18n="Archived Quotes">Archived Quotes</div>
-            </a>
-        </li>
+        @can('view-archived-quotes')
+            <li class="menu-header small">
+                <span class="menu-header-text" data-i18n="Archived Quotes">Archived Quotes</span>
+            </li>
+            <li class="menu-item {{ request()->segment(2) == 'archived-quotes' ? 'active' : '' }}">
+                <a href="{{ route('quotes.archived-quotes') }}" class="menu-link">
+                    <i class="menu-icon icon-base ti tabler-archive"></i>
+                    <div data-i18n="Archived Quotes">Archived Quotes</div>
+                </a>
+            </li>
+        @endcan
 
         <!-- User Management -->
         @canany(['view-roles', 'view-users'])
